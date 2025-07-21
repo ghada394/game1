@@ -4,15 +4,28 @@
   <meta charset="UTF-8">
   <title>اختيار الجنس</title>
   <style>
-    body {
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 100px;
-      background-color: #81afd4;
+      background-color: #000; /* لون احتياطي */
+      background-image: url('OIP.webp');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
-    h1 {
+     h1 {
       margin-bottom: 40px;
+      color: white;
+      text-shadow: 2px 2px 5px black;
     }
+
     .button {
       padding: 15px 30px;
       margin: 20px;
@@ -20,12 +33,13 @@
       cursor: pointer;
       border: none;
       border-radius: 10px;
-      background-color: #4CAF50;
+      background-color: #4c82afbb;
       color: white;
       transition: background-color 0.3s ease;
     }
+
     .button:hover {
-      background-color: #45a049;
+      background-color: #4574a06c;
     }
   </style>
 </head>
