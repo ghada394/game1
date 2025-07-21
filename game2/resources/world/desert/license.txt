@@ -1,0 +1,8 @@
+Model Information:
+* title:	Mar Saba monastery
+* source:	https://sketchfab.com/3d-models/mar-saba-monastery-4bff096a20064d65b8af65ab8c51d9cf
+* author:	matousekfoto (https://sketchfab.com/matousekfoto)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

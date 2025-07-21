@@ -1,21 +1,25 @@
-ml lang="ar">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>عالم المغامرة</title>
   <style>
-    /*nagham*/
+    /* تنسيق عام */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    body, html {
+    html, body {
       height: 100%;
-      font-family: 'Arial', sans-serif;
+      width: 100%;
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
     }
 
-    
+    /* شريط التنقل */
     .navbar {
       background-color: #000;
       color: white;
@@ -41,6 +45,7 @@ ml lang="ar">
       color: #ffcc00;
     }
 
+    /* شاشة البداية */
     .start-screen {
       background-image: url('https://img.pikbest.com/backgrounds/20250112/a-cartoon-style-illustration-of-man-standing-in-front-waterfall_11377511.jpg!w700wp'); 
       background-size: cover;
@@ -75,30 +80,253 @@ ml lang="ar">
     .start-button:hover {
       background-color: darkred;
     }
-    
+
+    /* فكرة اللعبة */
+    .hero {
+      position: relative;
+      height: 100vh;
+      background-image: url('https://cdn1.epicgames.com/spt-assets/b16ec25c48934337ab7042b653c1653a/shadow-fight-4-arena-s4187.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10%;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 1;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 700px;
+      text-align: right;
+      color: white;
+    }
+
+    .rahaf {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #c5c216;
+    }
+
+    .game-idea p {
+      font-size: 1em;
+      line-height: 1.8;
+    }
+
+    .highlighted {
+      color: rgb(0, 183, 255);
+      font-size: 1.3em;
+      font-weight: bold;
+    }
+
+    /* عن الفريق */
+    h1 {
+      text-align: center;
+      color: #333;
+      font-size: 36px;
+      margin: 80px 0 40px;
+    }
+
+    .team {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      width: 280px;
+      padding: 30px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 8px;
+      top: 0;
+      left: 0;
+      border-top-right-radius: 20px;
+      border-top-left-radius: 20px;
+    }
+
+    .card.pink::before {
+      background: linear-gradient(90deg, #ff4f8b, #f78fb3);
+    }
+
+    .card.blue::before {
+      background: linear-gradient(90deg, #70a1ff, #4a69bd);
+    }
+
+    .card.green::before {
+      background: linear-gradient(90deg, #55efc4, #00cec9);
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .name {
+      font-size: 24px;
+      color: #222;
+      margin-top: 20px;
+    }
+
+    .role {
+      font-size: 18px;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 15px;
+      display: block;
+      border: 3px solid #eee;
+    }
+
+    @media (max-width: 768px) {
+      .team {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+    .custom-footer {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: #fff;
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      box-shadow: 0 -8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .footer-content p {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    .footer-content span {
+      font-weight: bold;
+      color: #ffeaa7;
+    }
+
+    .footer-content strong {
+      color: #fab1a0;
+    }
+
+    .footer-line {
+      width: 60px;
+      height: 4px;
+      background-color: #fff;
+      border-radius: 2px;
+      margin: 15px auto;
+      opacity: 0.7;
+    }
+
+    .footer-thanks {
+      font-size: 16px;
+      color: #dfe6e9;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
-  
+  <!-- شريط التنقل -->
   <div class="navbar">
-    <a href="#">الصفحة الرئيسية</a>
-    <a href="#">معلومات عنا</a>
-    <a href="#">العب</a>
+    <a href="#start">الصفحة الرئيسية</a>
+    <a href="#team">معلومات عنا</a>
+    <a href="#idea">العب</a>
   </div>
 
-  
-  <div class="start-screen">
+  <!-- شاشة البداية -->
+  <div class="start-screen" id="start">
     <div class="game-title">عالم المغامرة</div>
     <button class="start-button" onclick="startGame()">العب الآن</button>
   </div>
 
+  <!-- فكرة اللعبة -->
+  <header class="hero" id="idea">
+    <div class="overlay"></div>
+    <div class="content">
+      <div class="rahaf">فكرة اللعبة</div>
+      <ul class="game-idea">
+        <p>
+          في عالم غامض محاط بالغابات والوحوش، تبدأ رحلتك بكوخ بسيط مهجور...<br>
+          هدفك هو 
+          <span class="highlighted">
+            "البقاء على قيد الحياة، تطوير منزلك، التجارة مع الغرباء، ومحاربة المخلوقات التي تظهر كل ليلة"
+          </span>.<br>
+          أنت الحارس الأخير، وعليك أن تبني عالمك وتحميه!
+        </p>
+      </ul>
+    </div>
+  </header>
+
+  <!-- عن الفريق -->
+  <section id="team">
+    <h1>عن الفريق</h1>
+    <div class="team">
+      <div class="card pink">
+        <img src="rahaf.jpeg" alt="رهف" class="avatar">
+        <div class="name">رهف</div>
+        <div class="role">مصممة القصة والنصوص ومبرمجة الصفحة</div>
+      </div>
+
+      <div class="card blue">
+        <img src="ghada.jpeg" alt="غادة" class="avatar">
+        <div class="name">غادة</div>
+        <div class="role">مبرمجة اللعبة والمسؤولة عن التحريك والمهمات</div>
+      </div>
+
+      <div class="card green">
+        <img src="nagham.jpeg" alt="نغم" class="avatar">
+        <div class="name">نغم</div>
+        <div class="role">مصممة واجهة المستخدم</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- تذييل -->
+  <footer class="custom-footer">
+    <div class="footer-content">
+      <p>تم تطوير هذه اللعبة كمشروع <span>هايتك 2025</span> – بإشراف المعلم <strong>عمرو</strong></p>
+      <div class="footer-line"></div>
+      <p class="footer-thanks">شكرًا لاهتمامكم، تابعونا للمزيد من الإبداع 💡🎮</p>
+    </div>
+  </footer>
+
   <script>
     function startGame() {
-      
-      window.location.href = "f,m.html"; }
+      window.location.href = "f,m.html";
+    }
   </script>
-
 
 </body>
 </html>

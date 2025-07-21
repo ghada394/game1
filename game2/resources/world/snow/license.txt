@@ -1,0 +1,8 @@
+Model Information:
+* title:	Gibson County Courthouse, indiana
+* source:	https://sketchfab.com/3d-models/gibson-county-courthouse-indiana-c2f22cb6e7524b199245502f7a535909
+* author:	JenkinsAerialGroup (https://sketchfab.com/JenkinsAerialGroup)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

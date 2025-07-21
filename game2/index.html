@@ -1,0 +1,163 @@
+html <!DOCTYPE html>
+<html>
+<head>
+  <title>لعبة غادة نغم رهاف</title>
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="base.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+French+Canon+SC&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+French+Canon+SC&display=swap" rel="stylesheet">
+  
+  <style>
+    #world-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #environment-selector {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+      border-radius: 5px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <script type="module" src="./src/main.js"></script>
+  <div id="world-container">
+    <div id="environment-selector">
+      <select id="world-type">
+        <option value="forest">عالم الغابة</option>
+        <option value="desert">عالم الصحراء</option>
+        <option value="snow">عالم الثلج</option>
+      </select>
+    </div>
+    <div class="container" id="container">
+      <div class="ui">
+        <div class="quest-journal-layout">
+          <div class="quest-journal" id="quest-journal"></div>
+        </div>
+      </div>
+      <div class="ui">
+        <div class="quest-ui-layout">
+          <div class="quest-ui" id="quest-ui">
+            <div class="quest-text-title" id="quest-text-title"></div>
+            <div class="quest-text" id="quest-text"></div>
+          </div>
+        </div>
+      </div>
+      <div class="ui">
+        <div class="icon-ui">
+          <div class="icon-bar" id="icon-bar">
+            <div class="icon-bar-item" id="icon-bar-stats" style="background-image: url('./resources/icons/ui/skills.png');"></div>
+            <div class="icon-bar-item" id="icon-bar-inventory" style="background-image: url('./resources/icons/ui/backpack.png');"></div>
+            <div class="icon-bar-item" id="icon-bar-quests" style="background-image: url('./resources/icons/ui/tied-scroll.png');"></div>
+          </div>
+        </div>
+      </div>
+      <div class="ui">
+        <div class="stats" id="stats">
+          <div class="stats-inner">
+            <div class="stats-title">الإحصائيات</div>
+            <div class="stats-row">
+              <div class="stats-tooltip">قوة
+                <div class="stats-tooltiptext">مدى قوتك يؤثر على مدى الضرر الذي تسببه.</div>
+              </div>
+              <div id="stats-strength">0</div>
+            </div>
+            <div class="stats-row">
+              <div class="stats-tooltip">حكمة
+                <div class="stats-tooltiptext">الحكمة تعني الحكمة.</div>
+              </div>
+              <div id="stats-wisdomness">0</div>
+            </div>
+            <div class="stats-row">
+              <div class="stats-tooltip">تمارين الضغط
+                <div class="stats-tooltiptext">يجب أن تمتلك طاولة جيدة لتكون محاربًا.</div>
+              </div>
+              <div id="stats-benchpress">0</div>
+            </div>
+            <div class="stats-row">
+              <div class="stats-tooltip">Curl
+                <div class="stats-tooltiptext">التعبير النهائي عن القوة.</div>
+              </div>
+              <div id="stats-curl">0</div>
+            </div>
+            <div class="stats-row">
+              <div class="stats-tooltip">إكس بي
+                <div class="stats-tooltiptext">كم من نقاط الخبرة التي قمت بتجميعها.</div>
+              </div>
+              <div id="stats-experience">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ui">
+        <div class="health-ui">
+          <div class="health-bar" id="health-bar"></div>
+        </div>
+      </div>
+      <div class="ui">
+        <div class="inventory" id="inventory">
+          <div class="inventory-inner">
+            <div class="inventory-title">المخزون</div>
+            <div class="inventory-row">
+              <div class="inventory-column">
+                <div class="inventory-item" id="inventory-equip-1" draggable="true"></div>
+                <div class="inventory-item" id="inventory-equip-2" draggable="true"></div>
+                <div class="inventory-item" id="inventory-equip-3" draggable="true"></div>
+                <div class="inventory-item" id="inventory-equip-4" draggable="true"></div>
+              </div>
+              <div class="inventory-character"></div>
+              <div class="inventory-column">
+                <div class="inventory-item" id="inventory-equip-5" draggable="true"></div>
+                <div class="inventory-item" id="inventory-equip-6" draggable="true"></div>
+                <div class="inventory-item" id="inventory-equip-7" draggable="true"></div>
+                <div class="inventory-item" id="inventory-equip-8" draggable="true"></div>
+              </div>
+            </div>
+            <div class="inventory-row">
+              <div class="inventory-item" id="inventory-1" draggable="true"></div>
+              <div class="inventory-item" id="inventory-2" draggable="true"></div>
+              <div class="inventory-item" id="inventory-3" draggable="true"></div>
+              <div class="inventory-item" id="inventory-4" draggable="true"></div>
+              <div class="inventory-item" id="inventory-5" draggable="true"></div>
+              <div class="inventory-item" id="inventory-6" draggable="true"></div>
+              <div class="inventory-item" id="inventory-7" draggable="true"></div>
+              <div class="inventory-item" id="inventory-8" draggable="true"></div>
+            </div>
+            <div class="inventory-row">
+              <div class="inventory-item" id="inventory-9" draggable="true"></div>
+              <div class="inventory-item" id="inventory-10" draggable="true"></div>
+              <div class="inventory-item" id="inventory-11" draggable="true"></div>
+              <div class="inventory-item" id="inventory-12" draggable="true"></div>
+              <div class="inventory-item" id="inventory-13" draggable="true"></div>
+              <div class="inventory-item" id="inventory-14" draggable="true"></div>
+              <div class="inventory-item" id="inventory-15" draggable="true"></div>
+              <div class="inventory-item" id="inventory-16" draggable="true"></div>
+            </div>
+            <div class="inventory-row">
+              <div class="inventory-item" id="inventory-17" draggable="true"></div>
+              <div class="inventory-item" id="inventory-18" draggable="true"></div>
+              <div class="inventory-item" id="inventory-19" draggable="true"></div>
+              <div class="inventory-item" id="inventory-20" draggable="true"></div>
+              <div class="inventory-item" id="inventory-21" draggable="true"></div>
+              <div class="inventory-item" id="inventory-22" draggable="true"></div>
+              <div class="inventory-item" id="inventory-23" draggable="true"></div>
+              <div class="inventory-item" id="inventory-24" draggable="true"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+</body>
+</html>  
