@@ -86,8 +86,13 @@ export const health_component = (() => {
     _OnDamage(msg) {
       this._health = Math.max(0.0, this._health - msg.value);
       if (this._health == 0) {
-        this._OnDeath(msg.attacker);
-      }
+  this._OnDeath(msg.attacker);
+
+  this._parent.Broadcast({
+    topic: 'monster.killed'
+  });
+}
+
 
       this.Broadcast({
         topic: 'health.update',

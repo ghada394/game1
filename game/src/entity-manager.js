@@ -49,7 +49,14 @@ export const entity_manager = (() => {
         e.Update(timeElapsed);
       }
     }
+
+    Remove(entity) {
+  delete this._entitiesMap[entity.Name];
+  this._entities = this._entities.filter(e => e !== entity);
+}
+
   }
+  
 
   return {
     EntityManager: EntityManager

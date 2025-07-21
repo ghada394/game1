@@ -94,6 +94,12 @@ export const player_input = (() => {
         case 16: // SHIFT
           this._keys.shift = true;
           break;
+        case 84: // T - للتفاعل مع التاجر
+          this.Broadcast({ topic: 'input.interact_merchant' });
+          break;
+        case 69: // E - للتفاعل مع المنزل
+          this.Broadcast({ topic: 'input.interact_home' });
+          break;
       }
     }
   
@@ -127,3 +133,5 @@ export const player_input = (() => {
   };
 
 })();
+
+

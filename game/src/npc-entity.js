@@ -47,7 +47,6 @@ export const npc_entity = (() => {
       super();
       this._Init(params);
     }
-
     _Init(params) {
       this._params = params;
       this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
@@ -68,10 +67,31 @@ export const npc_entity = (() => {
       this._RegisterHandler('health.death', (m) => { this._OnDeath(m); });
       this._RegisterHandler('update.position', (m) => { this._OnPosition(m); });
     }
-
     _OnDeath(msg) {
+      this.die(); // استدعاء دالة die() عند الموت
       this._stateMachine.SetState('death');
     }
+     die() {
+    // زيادة الذهب عند موت العدو
+    const goldReward = 20; // مقدار الذهب الذي سيحصل عليه اللاعب
+    const player = this.FindEntity('player');
+    if (player) {
+      player.Broadcast({
+        topic: 'gold.add',
+        value: goldReward,
+      });
+    }
+    
+    // إزالة النموذج من المشهد
+    if (this._target) {
+      this._params.scene.remove(this._target);
+    }
+    
+    // إزالة الكيان من المدير
+    this._parent._parent.Remove(this._parent);
+  }
+
+
 
     _OnPosition(m) {
       if (this._target) {

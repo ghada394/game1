@@ -1,5 +1,5 @@
+// MultipleFiles/inventory-controller.js
 import {entity} from './entity.js';
-
 
 export const inventory_controller = (() => {
 
@@ -21,10 +21,13 @@ export const inventory_controller = (() => {
           value: null,
         };
       }
+
+      this._gold = 0; // كمية الذهب  -----------
     }
 
     InitComponent() {
       this._RegisterHandler('inventory.add', (m) => this._OnInventoryAdded(m));
+      this._RegisterHandler('gold.add', (m) => this.AddGold(m.value)); // إضافة معالج لرسالة gold.add
 
       const _SetupElement = (n) => {
         const element = document.getElementById(n);
@@ -38,10 +41,9 @@ export const inventory_controller = (() => {
           ev.preventDefault();
           const data = ev.dataTransfer.getData('text/plain');
           const other = document.getElementById(data);
-    
           this._OnItemDropped(other, element);
         };
-      }
+      };
 
       for (let k in this._inventory) {
         _SetupElement(k);
@@ -58,7 +60,7 @@ export const inventory_controller = (() => {
       this._SetItemAtSlot(oldElement.id, newValue);
       this._SetItemAtSlot(newElement.id, oldValue);
 
-      if (newItem.type == 'equip') {
+      if (newItem.type === 'equip') {
         this.Broadcast({
           topic: 'inventory.equip',
           value: oldValue,
@@ -72,6 +74,7 @@ export const inventory_controller = (() => {
       const obj = this.FindEntity(itemName);
       if (obj) {
         const item = obj.GetComponent('InventoryItem');
+        // تأكد من أن المسار صحيح لأيقونات الأسلحة
         const path = './resources/icons/weapons/' + item.RenderParams.icon;
         div.style.backgroundImage = "url('" + path + "')";
       } else {
@@ -82,27 +85,47 @@ export const inventory_controller = (() => {
 
     _OnInventoryAdded(msg) {
       for (let k in this._inventory) {
-        if (!this._inventory[k].value && this._inventory[k].type == 'inventory') {
+        if (!this._inventory[k].value && this._inventory[k].type === 'inventory') {
           this._inventory[k].value = msg.value;
           msg.added = true;
 
           this._SetItemAtSlot(k, msg.value);
-  
+
           break;
         }
       }
     }
 
+    // --- إضافة دعم الذهب ---
+
+    AddGold(amount) {
+      this._gold += amount;
+
+      // بث الحدث الخاص بجمع الذهب (يحدث المهام)
+      this.Broadcast({
+        topic: 'gold.collected',
+        amount: amount,
+      });
+
+      // تحديث HUD أو أي شيء آخر يستمع لهذا الحدث
+      document.dispatchEvent(new CustomEvent('update-gold', {
+        detail: this._gold,
+      }));
+    }
+
+    GetGold() {
+      return this._gold;
+    }
+
     GetItemByName(name) {
       for (let k in this._inventory) {
-        if (this._inventory[k].value == name) {
+        if (this._inventory[k].value === name) {
           return this.FindEntity(name);
         }
       }
       return null;
     }
   };
-
 
   class InventoryItem extends entity.Component {
     constructor(params) {
@@ -121,9 +144,8 @@ export const inventory_controller = (() => {
     }
   };
 
-  
   return {
-      InventoryController: InventoryController,
-      InventoryItem: InventoryItem,
+    InventoryController: InventoryController,
+    InventoryItem: InventoryItem,
   };
 })();

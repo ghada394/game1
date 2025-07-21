@@ -1,25 +1,34 @@
-// استيراد مكتبة THREE من CDN
+//======================== استيراد المكتبات والموديلات اللازمة ========================
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118.1/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js'; // تأكد من استيراد FBXLoader هنا أيضًا
 
-import {third_person_camera} from './third-person-camera.js';
-import {entity_manager} from './entity-manager.js';
-import {player_entity} from './player-entity.js';
-import {entity} from './entity.js';
-import {gltf_component} from './gltf-component.js';
-import {health_component} from './health-component.js';
-import {player_input} from './player-input.js';
-import {npc_entity} from './npc-entity.js';
-import {math} from './math.js';
-import {spatial_hash_grid} from './spatial-hash-grid.js';
-import {ui_controller} from './ui-controller.js';
-import {health_bar} from './health-bar.js';
-import {level_up_component} from './level-up-component.js';
-import {quest_component} from './quest-component.js';
-import {spatial_grid_controller} from './spatial-grid-controller.js';
-import {inventory_controller} from './inventory-controller.js';
-import {equip_weapon_component} from './equip-weapon-component.js';
-import {attack_controller} from './attacker-controller.js';
+// استيراد مكونات اللعبة المختلفة من ملفات منفصلة
+import { third_person_camera } from './third-person-camera.js';
+import { entity_manager } from './entity-manager.js';
+import { player_entity } from './player-entity.js';
+import { entity } from './entity.js';
+import { gltf_component } from './gltf-component.js';
+import { health_component } from './health-component.js';
+import { player_input } from './player-input.js';
+import { npc_entity } from './npc-entity.js';
+import { math } from './math.js';
+import { spatial_hash_grid } from './spatial-hash-grid.js';
+import { ui_controller } from './ui-controller.js';
+import { health_bar } from './health-bar.js';
+import { level_up_component } from './level-up-component.js';
+import { quest_component } from './quest-component.js';
+import { spatial_grid_controller } from './spatial-grid-controller.js';
+import { inventory_controller } from './inventory-controller.js';
+import { equip_weapon_component } from './equip-weapon-component.js';
+import { attack_controller } from './attacker-controller.js';
 
+// استيراد مكونات إضافية للمنزل، التاجر وواجهة العرض HUD
+import { home_and_merchant_components } from './home_and_merchant_components.js';
+import { HUD } from './hud.js';
+
+//======================== شيدر السماء (Sky Shader) ========================
+// الكود الخاص بالـ vertex shader
 const _VS = `
 varying vec3 vWorldPosition;
 
@@ -30,6 +39,7 @@ void main() {
   gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 }`;
 
+// الكود الخاص بالـ fragment shader
 const _FS = `
 uniform vec3 topColor;
 uniform vec3 bottomColor;
@@ -43,17 +53,25 @@ void main() {
   gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
 }`;
 
+//======================== تعريف كلاس اللعبة الرئيسية ========================
 class HackNSlashDemo {
   constructor() {
     this._Initialize();
 
-    this._isDay = true; //  نهار
-    this._lastDayNightSwitch = performance.now();
-    this._cycleDuration = 60000; 
-    
-    this._monstersSpawned = false;
+    // حالة دورة النهار والليل
+    this._isDay = true; // الحالة الحالية: نهار
+    this._lastDayNightSwitch = performance.now(); // توقيت آخر تبديل بين النهار والليل
+    this._cycleDuration = 60000; // مدة دورة النهار/الليل بالميلي ثانية (60 ثانية)
+
+    this._monstersSpawned = false; // هل تم إنشاء الوحوش في الليل؟
+
+    // تهيئة واجهة المستخدم (HUD)
+    this._hud = new HUD();
+    this._playerGold = 0; // الذهب المبدئي للاعب
+    this._dayCount = 1; // عداد الأيام
   }
 
+  //======================== تحديث دورة النهار والليل ========================
   _UpdateDayNightCycle() {
     const now = performance.now();
 
@@ -62,87 +80,96 @@ class HackNSlashDemo {
       this._lastDayNightSwitch = now;
 
       if (this._isDay) {
+        // إعدادات النهار
         this._sun.intensity = 1.0;
         this._scene.background = new THREE.Color(0x87ceeb);
         this._scene.fog.color.set(0x89b2eb);
 
         this._monstersSpawned = false;
 
-        this._RemoveMonsters();  // حذف الوحوش في النهار
+        this._RemoveMonsters(); // إزالة الوحوش عند بدء النهار
+        this._dayCount++; // زيادة عدد الأيام
       } else {
+        // إعدادات الليل
         this._sun.intensity = 0.2;
         this._scene.background = new THREE.Color(0x000022);
         this._scene.fog.color.set(0x000022);
 
-        this._SpawnMonstersIfNight();
+        this._SpawnMonstersIfNight(); // استدعاء إنشاء الوحوش بالليل
       }
     }
   }
 
+  //======================== إزالة جميع الوحوش من المشهد ========================
   _RemoveMonsters() {
-    // نحصل كل الكائنات
-    const allEntities = this._entityManager.GetAll ? this._entityManager.GetAll() : [];
+    // الحصول على جميع الكيانات التي تحتوي على NPCController
+    const npcs = this._entityManager.Filter(e => e.GetComponent('NPCController'));
 
-    for (const entity of allEntities) {
-      // تحقق إن هذا الكائن وحش (يمتلك مكون NPCController)
-      if (entity.HasComponent && entity.HasComponent(npc_entity.NPCController)) {
-        // إزالة من المشهد إذا دالة موجودة
-        if (entity.RemoveFromScene) {
-          entity.RemoveFromScene();
+    for (const npc of npcs) {
+        // إزالة النموذج من المشهد
+        const modelComponent = npc.GetComponent('NPCController');
+        if (modelComponent && modelComponent._target) {
+            this._scene.remove(modelComponent._target);
         }
-        this._entityManager.Remove(entity);
-      }
+        // إزالة الكيان من مدير الكيانات
+        this._entityManager.Remove(npc);
     }
-  }
+}
 
+
+  //======================== إنشاء الوحوش إذا كان الوقت ليلاً ========================
   _SpawnMonstersIfNight() {
-    if (this._monstersSpawned) return;
-    this._monstersSpawned = true;
+  if (this._monstersSpawned) return;
+  this._monstersSpawned = true;
 
-    for (let i = 0; i < 50; ++i) {
-      const monsters = [
-        { resourceName: 'Ghost.fbx', resourceTexture: 'Ghost_Texture.png' },
-        { resourceName: 'Alien.fbx', resourceTexture: 'Alien_Texture.png' },
-        { resourceName: 'Skull.fbx', resourceTexture: 'Skull_Texture.png' },
-        { resourceName: 'GreenDemon.fbx', resourceTexture: 'GreenDemon_Texture.png' },
-        { resourceName: 'Cyclops.fbx', resourceTexture: 'Cyclops_Texture.png' },
-        { resourceName: 'Cactus.fbx', resourceTexture: 'Cactus_Texture.png' },
-      ];
-      const m = monsters[math.rand_int(0, monsters.length - 1)];
+  
+  for (let i = 0; i < 10; ++i) {
+    const monsters = [
+      { resourceName: 'Ghost.fbx', resourceTexture: 'Ghost_Texture.png' },
+      { resourceName: 'Alien.fbx', resourceTexture: 'Alien_Texture.png' },
+      { resourceName: 'Skull.fbx', resourceTexture: 'Skull_Texture.png' },
+      { resourceName: 'GreenDemon.fbx', resourceTexture: 'GreenDemon_Texture.png' },
+      { resourceName: 'Cyclops.fbx', resourceTexture: 'Cyclops_Texture.png' },
+      { resourceName: 'Cactus.fbx', resourceTexture: 'Cactus_Texture.png' },
+    ];
+    const m = monsters[math.rand_int(0, monsters.length - 1)];
 
-      const npc = new entity.Entity();
-      npc.AddComponent(new npc_entity.NPCController({
-        camera: this._camera,
-        scene: this._scene,
-        resourceName: m.resourceName,
-        resourceTexture: m.resourceTexture,
-      }));
-      npc.AddComponent(new health_component.HealthComponent({
-        health: 50,
-        maxHealth: 50,
-        strength: 2,
-        wisdomness: 2,
-        benchpress: 3,
-        curl: 1,
-        experience: 0,
-        level: 1,
-        camera: this._camera,
-        scene: this._scene,
-      }));
-      npc.AddComponent(new spatial_grid_controller.SpatialGridController({ grid: this._grid }));
-      npc.AddComponent(new health_bar.HealthBar({
-        parent: this._scene,
-        camera: this._camera,
-      }));
-      npc.AddComponent(new attack_controller.AttackController({ timing: 0.35 }));
-      npc.SetPosition(new THREE.Vector3(
-        (Math.random() * 2 - 1) * 500,
-        0,
-        (Math.random() * 2 - 1) * 500));
-      this._entityManager.Add(npc);
-    }
+    // باقي الكود لإنشاء الوحش
+    const npc = new entity.Entity();
+    npc.AddComponent(new npc_entity.NPCController({
+      camera: this._camera,
+      scene: this._scene,
+      resourceName: m.resourceName,
+      resourceTexture: m.resourceTexture,
+    }));
+    npc.AddComponent(new health_component.HealthComponent({
+      health: 50,
+      maxHealth: 50,
+      strength: 2,
+      wisdomness: 2,
+      benchpress: 3,
+      curl: 1,
+      experience: 0,
+      level: 1,
+      camera: this._camera,
+      scene: this._scene,
+    }));
+    npc.AddComponent(new spatial_grid_controller.SpatialGridController({ grid: this._grid }));
+    npc.AddComponent(new health_bar.HealthBar({
+      parent: this._scene,
+      camera: this._camera,
+    }));
+    npc.AddComponent(new attack_controller.AttackController({ timing: 0.35 }));
+    npc.SetPosition(new THREE.Vector3(
+      (Math.random() * 2 - 1) * 500,
+      0,
+      (Math.random() * 2 - 1) * 500));
+    this._entityManager.Add(npc);
   }
+}
 
+
+  //======================== تهيئة المشهد، الكاميرا، الإضاءة، وعناصر العالم ========================
   _Initialize() {
     this._threejs = new THREE.WebGLRenderer({
       antialias: true,
@@ -165,24 +192,27 @@ class HackNSlashDemo {
       this._OnWindowResize();
     }, false);
 
+    // إعداد الكاميرا الرئيسية
     const fov = 60;
     const aspect = 1920 / 1080;
     const near = 1.0;
     const far = 10000.0;
     this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    this._camera.position.set(25, 10, 25);
+    this._camera.position.set(0, 10, 20);
 
+    // إنشاء المشهد وإعداد الخلفية والضباب
     this._scene = new THREE.Scene();
     this._scene.background = new THREE.Color(0xFFFFFF);
     this._scene.fog = new THREE.FogExp2(0x89b2eb, 0.002);
 
+    // إعداد مصدر الضوء (الشمس)
     let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
     light.position.set(-10, 500, 10);
     light.target.position.set(0, 0, 0);
     light.castShadow = true;
     light.shadow.bias = -0.001;
-    light.shadow.mapSize.width = 4096;
-    light.shadow.mapSize.height = 4096;
+    light.shadow.mapSize.width = 1024;
+    light.shadow.mapSize.height = 1024;
     light.shadow.camera.near = 0.1;
     light.shadow.camera.far = 1000.0;
     light.shadow.camera.left = 100;
@@ -193,6 +223,7 @@ class HackNSlashDemo {
 
     this._sun = light;
 
+    // الأرضية الرئيسية
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(5000, 5000, 10, 10),
       new THREE.MeshStandardMaterial({
@@ -203,75 +234,64 @@ class HackNSlashDemo {
     plane.rotation.x = -Math.PI / 2;
     this._scene.add(plane);
 
-    // مواد الألوان
-    const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // بني للجدران
-    const roofMaterial = new THREE.MeshStandardMaterial({ color: 0xA52A2A }); // أحمر للسقف
-    const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x654321 }); // لون الباب
+    //======================== حذف إنشاء الجدران والسقف والباب (لم يتم تضمينه هنا) ========================
 
-    // الجدران (4 جدران رفيعة)
-    const wallThickness = 1;
-    const wallHeight = 10;
-    const wallLength = 20;
-
-    // الجدار الأمامي (مع باب)
-    const frontWallGeometry = new THREE.BoxGeometry(wallLength, wallHeight, wallThickness);
-    const frontWall = new THREE.Mesh(frontWallGeometry, wallMaterial);
-    frontWall.position.set(0, wallHeight / 2, wallLength / 2);
-    this._scene.add(frontWall);
-
-    // الباب (فراغ في الجدار الأمامي)
-    // هنا نستخدم مكعب بلون الباب ونضعه بحيث يشبه الباب في الجدار
-    const doorWidth = 4;
-    const doorHeight = 7;
-    const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, wallThickness + 0.1);
-    const door = new THREE.Mesh(doorGeometry, doorMaterial);
-    door.position.set(0, doorHeight / 2, wallLength / 2 + 0.1); // قليلاً أمام الجدار الأمامي
-    this._scene.add(door);
-
-    // الجدار الخلفي
-    const backWallGeometry = new THREE.BoxGeometry(wallLength, wallHeight, wallThickness);
-    const backWall = new THREE.Mesh(backWallGeometry, wallMaterial);
-    backWall.position.set(0, wallHeight / 2, -wallLength / 2);
-    this._scene.add(backWall);
-
-    // الجدار الأيسر
-    const sideWallGeometry = new THREE.BoxGeometry(wallThickness, wallHeight, wallLength);
-    const leftWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
-    leftWall.position.set(-wallLength / 2, wallHeight / 2, 0);
-    this._scene.add(leftWall);
-
-    // الجدار الأيمن
-    const rightWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
-    rightWall.position.set(wallLength / 2, wallHeight / 2, 0);
-    this._scene.add(rightWall);
-
-    // السقف - شكل بسيط
-    const roofGeometry = new THREE.ConeGeometry(wallLength / 1.5, 8, 4); // شكل هرمي بسيط للسقف
-    const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-    roof.position.set(0, wallHeight + 4, 0);
-    roof.rotation.y = Math.PI / 4; // لتدوير الهرم بحيث يغطي الجدران
-    this._scene.add(roof);
-
+    // إنشاء مدير الكيانات
     this._entityManager = new entity_manager.EntityManager();
+
+    // إنشاء الشبكة المكانية لتسهيل الحسابات
     this._grid = new spatial_hash_grid.SpatialHashGrid(
       [[-1000, -1000], [1000, 1000]], [100, 100]);
 
+    // تحميل باقي المكونات المختلفة من وحدات منفصلة
     this._LoadControllers();
     this._LoadPlayer();
     this._LoadFoliage();
     this._LoadClouds();
     this._LoadSky();
+    this._LoadHomeAndMerchant();
+
+    //======================== تحميل عالم الغابة والكوخ ========================
+    // تحميل نموذج الغابة
+    const forestWorld = new entity.Entity();
+    forestWorld.AddComponent(new gltf_component.StaticModelComponent({
+      scene: this._scene,
+      resourcePath: 'resources/world/forest/',
+      resourceName: '/scene.gltf',
+      position: new THREE.Vector3(0, 0, 0),
+      scale: 100,
+      receiveShadow: true,
+      castShadow: true,
+    }));
+    forestWorld.SetPosition(new THREE.Vector3(0, 0, 0));
+    this._entityManager.Add(forestWorld, 'forestWorld');
+
+    // تحميل نموذج الكوخ
+    const forestHut = new entity.Entity();
+    forestHut.AddComponent(new gltf_component.StaticModelComponent({
+      scene: this._scene,
+      resourcePath: 'resources/world/forest_hut/',
+      resourceName: 'scene.gltf',
+      position: new THREE.Vector3(0, 0, -5),
+      scale: 10,
+      receiveShadow: true,
+      castShadow: true,
+    }));
+    forestHut.SetPosition(new THREE.Vector3(0, 0, -5));
+    this._entityManager.Add(forestHut, 'forestHut');
 
     this._previousRAF = null;
     this._RAF();
   }
 
+  //======================== تحميل عناصر واجهة المستخدم (UI) ========================
   _LoadControllers() {
     const ui = new entity.Entity();
     ui.AddComponent(new ui_controller.UIController());
     this._entityManager.Add(ui, 'ui');
   }
 
+  //======================== إعداد السماء ========================
   _LoadSky() {
     const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0xFFFFFFF, 0.6);
     hemiLight.color.setHSL(0.6, 1, 0.6);
@@ -300,8 +320,9 @@ class HackNSlashDemo {
     this._scene.add(sky);
   }
 
+  //======================== تحميل السحب ========================
   _LoadClouds() {
-    for (let i = 0; i < 20; ++i) {
+    for (let i = 0; i < 1; ++i) {
       const index = math.rand_int(1, 3);
       const pos = new THREE.Vector3(
         (Math.random() * 2.0 - 1.0) * 500,
@@ -323,8 +344,9 @@ class HackNSlashDemo {
     }
   }
 
+  //======================== تحميل الأشجار والنباتات ========================
   _LoadFoliage() {
-    for (let i = 0; i < 100; ++i) {
+    for (let i = 0; i < 5; ++i) {
       const names = [
         'CommonTree_Dead', 'CommonTree',
         'BirchTree', 'BirchTree_Dead',
@@ -358,12 +380,64 @@ class HackNSlashDemo {
     }
   }
 
+  //======================== تحميل المنزل والتاجر ========================
+  _LoadHomeAndMerchant() {
+    // تحديث ذهب اللاعب
+    const updatePlayerGold = (amount) => {
+      this._playerGold += amount;
+      console.log(`الذهب الحالي: ${this._playerGold}`);
+    };
+
+    // ترقية المنزل
+    const upgradeHome = () => {
+      const homeEntity = this._entityManager.Get('home');
+      if (homeEntity) {
+        homeEntity.GetComponent('HomeComponent').upgradeHome();
+      }
+    };
+
+    // إضافة عنصر للمخزون
+    const addInventoryItem = (itemName) => {
+      const player = this._entityManager.Get('player');
+      if (player) {
+        player.Broadcast({
+          topic: 'inventory.add',
+          value: itemName,
+          added: false,
+        });
+      }
+    };
+
+    // إنشاء كيان المنزل مع مكون HomeComponent
+    const home = new entity.Entity();
+    home.AddComponent(new home_and_merchant_components.HomeComponent({
+      scene: this._scene,
+      playerGold: this._playerGold,
+      updatePlayerGold: updatePlayerGold,
+      upgradeHome: upgradeHome,
+    }));
+    this._entityManager.Add(home, 'home');
+
+    // إنشاء كيان التاجر مع مكون MerchantComponent
+    const merchant = new entity.Entity();
+    merchant.AddComponent(new home_and_merchant_components.MerchantComponent({
+      scene: this._scene,
+      playerGold: this._playerGold,
+      updatePlayerGold: updatePlayerGold,
+      upgradeHome: upgradeHome,
+      addInventoryItem: addInventoryItem,
+    }));
+    this._entityManager.Add(merchant, 'merchant');
+  }
+
+  //======================== تحميل اللاعب والمكونات المرتبطة ========================
   _LoadPlayer() {
     const params = {
       camera: this._camera,
       scene: this._scene,
     };
 
+    // مكون مسؤول عن إضافة نظام ترقية للاعب
     const levelUpSpawner = new entity.Entity();
     levelUpSpawner.AddComponent(new level_up_component.LevelUpComponentSpawner({
       camera: this._camera,
@@ -371,30 +445,7 @@ class HackNSlashDemo {
     }));
     this._entityManager.Add(levelUpSpawner, 'level-up-spawner');
 
-    const axe = new entity.Entity();
-    axe.AddComponent(new inventory_controller.InventoryItem({
-      type: 'weapon',
-      damage: 3,
-      renderParams: {
-        name: 'Axe',
-        scale: 0.25,
-        icon: 'war-axe-64.png',
-      },
-    }));
-    this._entityManager.Add(axe);
-
-    const sword = new entity.Entity();
-    sword.AddComponent(new inventory_controller.InventoryItem({
-      type: 'weapon',
-      damage: 3,
-      renderParams: {
-        name: 'Sword',
-        scale: 0.25,
-        icon: 'pointy-sword-64.png',
-      },
-    }));
-    this._entityManager.Add(sword);
-
+    // إنشاء كيان اللاعب وإضافة مكونات تحكم، صحة، سلاح، مخزون، هجوم، وغيرها
     const player = new entity.Entity();
     player.AddComponent(new player_input.BasicCharacterControllerInput(params));
     player.AddComponent(new player_entity.BasicCharacterController(params));
@@ -417,24 +468,7 @@ class HackNSlashDemo {
     player.AddComponent(new attack_controller.AttackController({ timing: 0.7 }));
     this._entityManager.Add(player, 'player');
 
-    player.Broadcast({
-      topic: 'inventory.add',
-      value: axe.Name,
-      added: false,
-    });
-
-    player.Broadcast({
-      topic: 'inventory.add',
-      value: sword.Name,
-      added: false,
-    });
-
-    player.Broadcast({
-      topic: 'inventory.equip',
-      value: sword.Name,
-      added: false,
-    });
-
+    // إضافة كاميرا تتبع للاعب
     const camera = new entity.Entity();
     camera.AddComponent(
       new third_person_camera.ThirdPersonCamera({
@@ -444,12 +478,14 @@ class HackNSlashDemo {
     this._entityManager.Add(camera, 'player-camera');
   }
 
+  //======================== تحديث حجم الكاميرا عند تغيير حجم النافذة ========================
   _OnWindowResize() {
     this._camera.aspect = window.innerWidth / window.innerHeight;
     this._camera.updateProjectionMatrix();
     this._threejs.setSize(window.innerWidth, window.innerHeight);
   }
 
+  //======================== تحديث موقع الشمس لتتبع اللاعب ========================
   _UpdateSun() {
     const player = this._entityManager.Get('player');
     const pos = player._position;
@@ -461,6 +497,7 @@ class HackNSlashDemo {
     this._sun.target.updateMatrixWorld();
   }
 
+  //======================== الحلقة الرئيسية للرسم والتحديث ========================
   _RAF() {
     requestAnimationFrame((t) => {
       if (this._previousRAF === null) {
@@ -475,14 +512,29 @@ class HackNSlashDemo {
     });
   }
 
+  //======================== تحديث اللعبة في كل إطار ========================
   _Step(timeElapsed) {
+    // تحديد الوقت المستغرق بالثواني، مع حد أقصى 1/30 ثانية
     const timeElapsedS = Math.min(1.0 / 30.0, timeElapsed * 0.001);
     this._UpdateSun();
     this._UpdateDayNightCycle();
     this._entityManager.Update(timeElapsedS);
+
+    // تحديث معلومات واجهة المستخدم (HUD)
+    const playerHealthComponent = this._entityManager.Get('player')?.GetComponent('HealthComponent');
+    const playerHealth = playerHealthComponent ? playerHealthComponent._health : 0;
+    const numEnemies = this._entityManager.Filter(e => e.GetComponent('NPCController')).length;
+
+    this._hud.update({
+      health: playerHealth,
+      day: this._dayCount,
+      enemies: numEnemies,
+      gold: this._playerGold,
+    });
   }
 }
 
+//======================== نقطة الدخول: بدء اللعبة بعد تحميل الصفحة ========================
 let _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {

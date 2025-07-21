@@ -4,24 +4,24 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.142.0/examples/
 import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.142.0/examples/js/loaders/FBXLoader.js';
 
 // استيراد المكونات الخاصة بالمشروع
-import { third_person_camera } from './third-person-camera.js';
-import { entity_manager } from './entity-manager.js';
-import { player_entity } from './player-entity.js';
-import { entity } from './entity.js';
-import { gltf_component } from './gltf-component.js';
-import { health_component } from './health-component.js';
-import { player_input } from './player-input.js';
-import { npc_entity } from './npc-entity.js';
-import { math } from './math.js';
-import { spatial_hash_grid } from './spatial-hash-grid.js';
-import { ui_controller } from './ui-controller.js';
-import { health_bar } from './health-bar.js';
-import { level_up_component } from './level-up-component.js';
-import { quest_component } from './quest-component.js';
-import { spatial_grid_controller } from './spatial-grid-controller.js';
-import { inventory_controller } from './inventory-controller.js';
-import { equip_weapon_component } from './equip-weapon-component.js';
-import { attack_controller } from './attacker-controller.js';
+import { third_person_camera } from './merged/player/third-person-camera.js';
+import { entity_manager } from './merged/core/entity-manager.js';
+import { player_entity } from './merged/player/player-entity.js';
+import { entity } from './merged/core/entity.js';
+import { gltf_component } from './merged/components/gltf-component.js';
+import { health_component } from './merged/components/health-component.js';
+import { player_input } from './merged/player/player-input.js';
+import { npc_entity } from './merged/world/npc-entity.js';
+import { math } from './merged/core/math.js';
+import { spatial_hash_grid } from './merged/engine/spatial-hash-grid.js';
+import { ui_controller } from './merged/ui/ui-controller.js';
+import { health_bar } from './merged/ui/health-bar.js';
+import { level_up_component } from './merged/effects/level-up-component.js';
+import { quest_component } from './merged/home/quest-component.js';
+import { spatial_grid_controller } from './merged/engine/spatial-grid-controller.js';
+import { inventory_controller } from './merged/components/inventory-controller.js';
+import { equip_weapon_component } from './merged/combat/equip-weapon-component.js';
+import { attack_controller } from './merged/combat/attacker-controller.js';
 
 // شادر (Shader) السماء
 const _VS = `
