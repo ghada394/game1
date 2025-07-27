@@ -26,48 +26,61 @@ html <!DOCTYPE html>
       border-radius: 5px;
       color: white;
     }
-     #touch-controls {
+
+     #mobile-controls {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
-    z-index: 9999;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .control-row {
+    display: flex;
     gap: 10px;
   }
-
-  #touch-controls button {
+  .control-btn {
     width: 60px;
     height: 60px;
     font-size: 24px;
     border-radius: 10px;
     border: none;
-    background-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-    cursor: pointer;
-  }
-
-  /* إخفاء الأزرار على الكمبيوتر (تشتغل فقط على الشاشات الصغيرة) */
-  @media (min-width: 768px) {
-    #touch-controls {
-      display: none;
-    }
+    background-color: rgba(255,255,255,0.2);
+    color: white;
+    backdrop-filter: blur(5px);
+    touch-action: none;
   }
   </style>
 </head>
 <body>
   <script type="module" src="./src/main.js"></script>
 
-  <!-- أزرار الهاتف -->
-<div id="touch-controls">
-  <button id="btn-left">⬅️</button>
-  <button id="btn-right">➡️</button>
-  <button id="btn-up">⬆️</button>
-  <button id="btn-down">⬇️</button>
-  <button id="btn-attack">🗡️</button>
+
+  <div id="mobile-controls">
+  <div class="control-row">
+    <button class="control-btn" id="btn-up">⬆️</button>
+  </div>
+  <div class="control-row">
+    <button class="control-btn" id="btn-left">⬅️</button>
+    <button class="control-btn" id="btn-down">⬇️</button>
+    <button class="control-btn" id="btn-right">➡️</button>
+  </div>
+  <div class="control-row">
+    <button class="control-btn" id="btn-attack">🗡️</button>
+  </div>
 </div>
 
- 
+  <div id="world-container">
+    <div id="environment-selector">
+      <select id="world-type">
+        <option value="forest">عالم الغابة</option>
+        <option value="desert">عالم الصحراء</option>
+        <option value="snow">عالم الثلج</option>
+      </select>
+    </div>
     <div class="container" id="container">
       <div class="ui">
         <div class="quest-journal-layout">
