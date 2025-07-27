@@ -26,6 +26,33 @@ html <!DOCTYPE html>
       border-radius: 5px;
       color: white;
     }
+     #touch-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  #touch-controls button {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    border-radius: 10px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+
+  /* إخفاء الأزرار على الكمبيوتر (تشتغل فقط على الشاشات الصغيرة) */
+  @media (min-width: 768px) {
+    #touch-controls {
+      display: none;
+    }
+  }
   </style>
 </head>
 <body>
