@@ -535,20 +535,7 @@ class HackNSlashDemo {
 }
 
 
-document.getElementById('btn-left').addEventListener('touchstart', () => {
-  player._input._keys['ArrowLeft'] = true;
-});
-document.getElementById('btn-left').addEventListener('touchend', () => {
-  player._input._keys['ArrowLeft'] = false;
-});
 
-// كرري للأزرار الأخرى:
-document.getElementById('btn-right').addEventListener('touchstart', () => {
-  player._input._keys['ArrowRight'] = true;
-});
-document.getElementById('btn-right').addEventListener('touchend', () => {
-  player._input._keys['ArrowRight'] = false;
-});
 
 
 //======================== نقطة الدخول: بدء اللعبة بعد تحميل الصفحة ========================
