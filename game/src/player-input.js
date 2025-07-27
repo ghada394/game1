@@ -135,23 +135,24 @@ export const player_input = (() => {
 
 
       _SetupTouchButtons() {
-    const set = (key, state) => {
-      this._keys[key] = state;
-    };
+  const set = (key, state) => {
+    this._keys[key] = state;
+  };
 
-    const bind = (id, key) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener('touchstart', () => set(key, true));
-      el.addEventListener('touchend', () => set(key, false));
-    };
+  const bind = (id, key) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('touchstart', () => set(key, true));
+    el.addEventListener('touchend', () => set(key, false));
+  };
 
-    bind('btn-up', 'forward');
-    bind('btn-down', 'backward');
-    bind('btn-left', 'left');
-    bind('btn-right', 'right');
-    bind('btn-attack', 'space');
-  }
+  bind('btn-up', 'forward');
+  bind('btn-down', 'backward');
+  bind('btn-left', 'left');
+  bind('btn-right', 'right');
+  bind('btn-attack', 'space');
+}
+
 
   };
 
