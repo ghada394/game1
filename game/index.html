@@ -61,6 +61,32 @@ html <!DOCTYPE html>
   touch-action: none;
 }
 
+#rotate-notice {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  color: white;
+  font-size: 24px;
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+@media screen and (orientation: portrait) {
+  #rotate-notice {
+    display: flex;
+  }
+  #game-container, canvas, #mobile-controls-left, #mobile-controls-right {
+    display: none !important;
+  }
+}
+
+
   </style>
 </head>
 <body>
@@ -83,7 +109,13 @@ html <!DOCTYPE html>
 </div>
 
   <div id="world-container">
-    
+    <div id="environment-selector">
+      <select id="world-type">
+        <option value="forest">عالم الغابة</option>
+        <option value="desert">عالم الصحراء</option>
+        <option value="snow">عالم الثلج</option>
+      </select>
+    </div>
     <div class="container" id="container">
       <div class="ui">
         <div class="quest-journal-layout">
@@ -205,5 +237,12 @@ html <!DOCTYPE html>
   </div>
   </div>
   </div>
+
+
+
+  <div id="rotate-notice">
+  الرجاء تدوير جهازك إلى الوضع الأفقي (Landscape) لتجربة اللعبة بشكل أفضل.
+</div>
+
 </body>
 </html>  
