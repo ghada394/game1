@@ -246,6 +246,9 @@ class HackNSlashDemo {
     // تحميل باقي المكونات المختلفة من وحدات منفصلة
     this._LoadControllers();
     this._LoadPlayer();
+
+    setupTouchControls(player);
+
     this._LoadFoliage();
     this._LoadClouds();
     this._LoadSky();
@@ -437,6 +440,8 @@ class HackNSlashDemo {
       scene: this._scene,
     };
 
+    
+
     // مكون مسؤول عن إضافة نظام ترقية للاعب
     const levelUpSpawner = new entity.Entity();
     levelUpSpawner.AddComponent(new level_up_component.LevelUpComponentSpawner({
@@ -532,6 +537,32 @@ class HackNSlashDemo {
       gold: this._playerGold,
     });
   }
+
+  function setupTouchControls(player) {
+  const keys = player._input._keys;
+
+  function bindTouch(id, key) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      keys[key] = true;
+    });
+
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      keys[key] = false;
+    });
+  }
+
+  bindTouch('btn-left', 'ArrowLeft');
+  bindTouch('btn-right', 'ArrowRight');
+  bindTouch('btn-up', 'ArrowUp');
+  bindTouch('btn-down', 'ArrowDown');
+  bindTouch('btn-attack', 'Space'); // زر الهجوم إذا كان يشتغل بزر المسافة
+}
+
 }
 
 
