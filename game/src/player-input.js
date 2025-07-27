@@ -29,11 +29,18 @@ export const player_input = (() => {
         right: false,
         space: false,
         shift: false,
+
+
+
+        
+
       };
       this._raycaster = new THREE.Raycaster();
       document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
       document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
       document.addEventListener('mouseup', (e) => this._onMouseUp(e), false);
+
+      this._SetupTouchButtons();
     }
   
     _onMouseUp(event) {
@@ -125,6 +132,27 @@ export const player_input = (() => {
           break;
       }
     }
+
+
+      _SetupTouchButtons() {
+    const set = (key, state) => {
+      this._keys[key] = state;
+    };
+
+    const bind = (id, key) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('touchstart', () => set(key, true));
+      el.addEventListener('touchend', () => set(key, false));
+    };
+
+    bind('btn-up', 'forward');
+    bind('btn-down', 'backward');
+    bind('btn-left', 'left');
+    bind('btn-right', 'right');
+    bind('btn-attack', 'space');
+  }
+
   };
 
   return {
