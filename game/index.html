@@ -26,10 +26,88 @@ html <!DOCTYPE html>
       border-radius: 5px;
       color: white;
     }
+
+    #mobile-controls-left, #mobile-controls-right {
+  position: absolute;
+  bottom: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#mobile-controls-left {
+  left: 20px;
+}
+
+#mobile-controls-right {
+  right: 20px;
+}
+
+.control-row {
+  display: flex;
+  gap: 10px;
+}
+
+.control-btn {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  border-radius: 10px;
+  border: none;
+  background-color: rgba(26, 45, 209, 0.247);
+  color: white;
+  backdrop-filter: blur(5px);
+  touch-action: none;
+}
+
+#rotate-notice {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  color: white;
+  font-size: 24px;
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+@media screen and (orientation: portrait) {
+  #rotate-notice {
+    display: flex;
+  }
+  #game-container, canvas, #mobile-controls-left, #mobile-controls-right {
+    display: none !important;
+  }
+}
+
+
   </style>
 </head>
 <body>
   <script type="module" src="./src/main.js"></script>
+
+
+ <div id="mobile-controls-left">
+  <div class="control-row">
+    <button class="control-btn" id="btn-up">⬆️</button>
+  </div>
+  <div class="control-row">
+    <button class="control-btn" id="btn-left">⬅️</button>
+    <button class="control-btn" id="btn-down">⬇️</button>
+    <button class="control-btn" id="btn-right">➡️</button>
+  </div>
+</div>
+
+<div id="mobile-controls-right">
+  <button class="control-btn" id="btn-attack">🗡️</button>
+</div>
+
   <div id="world-container">
     <div id="environment-selector">
       <select id="world-type">
@@ -159,5 +237,12 @@ html <!DOCTYPE html>
   </div>
   </div>
   </div>
+
+
+
+  <div id="rotate-notice">
+  الرجاء تدوير جهازك إلى الوضع الأفقي (Landscape) لتجربة اللعبة بشكل أفضل.
+</div>
+
 </body>
 </html>  

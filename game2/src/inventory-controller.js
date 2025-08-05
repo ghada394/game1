@@ -27,7 +27,17 @@ export const inventory_controller = (() => {
 
     InitComponent() {
       this._RegisterHandler('inventory.add', (m) => this._OnInventoryAdded(m));
-      this._RegisterHandler('gold.add', (m) => this.AddGold(m.value)); // إضافة معالج لرسالة gold.add
+      this._RegisterHandler('gold.add', (m) => this.AddGold(m.value));
+
+      // ✅ استمع لأوامر الشراء من خارج النظام (مثل التاجر)
+      document.addEventListener("inventory.add", (e) => {
+        // هنا نستخدم e.detail.value كاسم الكيان، و e.detail.params كبيانات InventoryItem
+        this.Broadcast({
+          topic: 'inventory.add',
+          value: e.detail.value, // اسم السلاح (مثل "Axe")
+          params: e.detail.params, // بيانات السلاح (damage, renderParams, etc.)
+        });
+      });
 
       const _SetupElement = (n) => {
         const element = document.getElementById(n);
@@ -50,6 +60,7 @@ export const inventory_controller = (() => {
       }
     }
 
+
     _OnItemDropped(oldElement, newElement) {
       const oldItem = this._inventory[oldElement.id];
       const newItem = this._inventory[newElement.id];
@@ -60,18 +71,19 @@ export const inventory_controller = (() => {
       this._SetItemAtSlot(oldElement.id, newValue);
       this._SetItemAtSlot(newElement.id, oldValue);
 
+      // ✅ تعديل هنا: إذا كان العنصر الجديد الذي تم إسقاطه في خانة التجهيز هو سلاح، قم بتجهيزه
       if (newItem.type === 'equip') {
         this.Broadcast({
           topic: 'inventory.equip',
-          value: oldValue,
-          added: false,
+          value: oldValue, // السلاح الذي تم تجهيزه
+          added: false, // هذا العلم قد لا يكون ضرورياً هنا
         });
       }
     }
 
     _SetItemAtSlot(slot, itemName) {
       const div = document.getElementById(slot);
-      const obj = this.FindEntity(itemName);
+      const obj = this.FindEntity(itemName); // البحث عن الكيان بالاسم
       if (obj) {
         const item = obj.GetComponent('InventoryItem');
         // تأكد من أن المسار صحيح لأيقونات الأسلحة
@@ -84,6 +96,15 @@ export const inventory_controller = (() => {
     }
 
     _OnInventoryAdded(msg) {
+      // ✅ تعديل هنا: إذا لم يكن الكيان موجودًا بالفعل، قم بإنشائه وإضافته إلى EntityManager
+      let itemEntity = this.FindEntity(msg.value);
+      if (!itemEntity) {
+        itemEntity = new entity.Entity();
+        itemEntity.SetName(msg.value); // تعيين اسم الكيان ليتوافق مع msg.value
+        itemEntity.AddComponent(new InventoryItem(msg.params)); // استخدام msg.params لإنشاء InventoryItem
+        this._parent._parent.Add(itemEntity, msg.value); // إضافة الكيان إلى EntityManager
+      }
+
       for (let k in this._inventory) {
         if (!this._inventory[k].value && this._inventory[k].type === 'inventory') {
           this._inventory[k].value = msg.value;

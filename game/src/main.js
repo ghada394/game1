@@ -519,20 +519,23 @@ class HackNSlashDemo {
     this._UpdateSun();
     this._UpdateDayNightCycle();
     this._entityManager.Update(timeElapsedS);
-
     // تحديث معلومات واجهة المستخدم (HUD)
     const playerHealthComponent = this._entityManager.Get('player')?.GetComponent('HealthComponent');
     const playerHealth = playerHealthComponent ? playerHealthComponent._health : 0;
     const numEnemies = this._entityManager.Filter(e => e.GetComponent('NPCController')).length;
-
+    // --- إضافة هذا الجزء لسحب الذهب من InventoryController ---
+    const playerInventoryComponent = this._entityManager.Get('player')?.GetComponent('InventoryController');
+    const currentPlayerGold = playerInventoryComponent ? playerInventoryComponent.GetGold() : 0;
+    // --- نهاية الإضافة ---
     this._hud.update({
       health: playerHealth,
       day: this._dayCount,
       enemies: numEnemies,
-      gold: this._playerGold,
+      gold: currentPlayerGold, // استخدم قيمة الذهب المسحوبة من InventoryController
     });
   }
 }
+
 
 //======================== نقطة الدخول: بدء اللعبة بعد تحميل الصفحة ========================
 let _APP = null;

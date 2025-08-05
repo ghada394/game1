@@ -254,6 +254,21 @@
       color: #dfe6e9;
       margin-top: 10px;
     }
+
+    button {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: darkred;
+    }
   </style>
 </head>
 <body>
@@ -268,7 +283,8 @@
  
   <div class="start-screen" id="start">
     <div class="game-title">The Last Guard </div>
-    <button class="start-button" onclick="startGame()">العب الآن</button>
+   <button onclick="startGame()">ابدأ اللعبة</button>
+
   </div>
 
   
@@ -324,7 +340,7 @@
 
   <script>
     function startGame() {
-      window.location.href = "f,m.html";
+      window.location.href = "page.html";
     }
   </script>
 
