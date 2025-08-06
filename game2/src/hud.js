@@ -21,18 +21,24 @@
             this._healthEl = document.createElement('div');
             this._dayEl = document.createElement('div');
             this._enemiesEl = document.createElement('div');
-            this._goldEl = document.createElement('div'); // عنصر جديد للذهب
+            // START_CHANGE
+            this._goldEl = document.createElement('div'); // New element for gold
+            // END_CHANGE
 
             this._container.appendChild(this._healthEl);
             this._container.appendChild(this._dayEl);
             this._container.appendChild(this._enemiesEl);
-            this._container.appendChild(this._goldEl); // إضافة عنصر الذهب
+            // START_CHANGE
+            this._container.appendChild(this._goldEl); // Add gold element
+            // END_CHANGE
           }
 
-          update({ health, day, enemies, gold }) { // إضافة gold إلى المعلمات
+          // START_CHANGE
+          update({ health, day, enemies, gold }) { // Added gold to parameters
             this._healthEl.textContent = `❤️ الصحة: ${health}`;
             this._dayEl.textContent = `📅 اليوم: ${day}`;
             this._enemiesEl.textContent = `👾 أعداء: ${enemies}`;
-            this._goldEl.textContent = `💰 الذهب: ${gold}`; // تحديث عرض الذهب
+            this._goldEl.textContent = `💰 الذهب: ${gold}`; // Update gold display
           }
+          // END_CHANGE
         }
