@@ -64,14 +64,9 @@ export const home_and_merchant_components = (() => {
       this._merchantPosition = new THREE.Vector3(30, 0, 5);
       this._interactionRange = 10;
       this._inventory = [
-        // START_CHANGE
-        // تم تحديث أسماء نماذج الأسلحة لتتوافق مع ملفاتك.
-        // يرجى استبدال 'YourAxeModel.fbx' و 'YourSwordModel.fbx' بالأسماء الفعلية لملفاتك.
-        // على سبيل المثال: { name: "Axe", price: 20, type: "weapon", damage: 3, renderParams: { name: 'Round_2', scale: 0.25, icon: 'war-axe-64.png' } },
-        // وتأكد أن أيقونات الأسلحة (مثل war-axe-64.png) موجودة في المسار resources/icons/weapons/
-        { name: "Axe", price: 20, type: "weapon", damage: 3, renderParams: { name: 'YourAxeModel', scale: 0.25, icon: 'Axe.png' } }, // ضع اسم ملف الفأس هنا (بدون .fbx)
-        { name: "Sword", price: 20, type: "weapon", damage: 3, renderParams: { name: 'YourSwordModel', scale: 0.25, icon: 'Sword.png' } }, // ضع اسم ملف السيف هنا (بدون .fbx)
-        // END_CHANGE
+        // تأكد من استبدال 'YourAxeModel' و 'YourSwordModel' بالأسماء الفعلية لملفاتك (بدون .fbx)
+        { name: "Axe", price: 20, type: "weapon", damage: 3, renderParams: { name: 'YourAxeModel', scale: 0.25, icon: 'Axe.png' } },
+        { name: "Sword", price: 20, type: "weapon", damage: 3, renderParams: { name: 'YourSwordModel', scale: 0.25, icon: 'Sword.png' } },
         { name: "Home Upgrade", price: 50, type: "upgrade" },
         { name: "Health Potion", price: 15, type: "potion" }
       ];
@@ -89,8 +84,6 @@ export const home_and_merchant_components = (() => {
 
     _LoadMerchantModel() {
       const loader = new FBXLoader();
-      // Comment for merchant model resource
-      // ضع نموذج التاجر الخاص بك (مثل peasant_girl.fbx) في المسار ./resources/girl/
       loader.load('./resources/girl/peasant_girl.fbx', (fbx) => {
         this._merchantMesh = fbx;
         this._merchantMesh.scale.set(0.03, 0.03, 0.03);
@@ -200,17 +193,28 @@ export const home_and_merchant_components = (() => {
         playerInventory.AddGold(-item.price); // Decrease gold
         if (item.type === "weapon") {
           console.log(`🗡️ حصلت على: ${item.name} (ضرر: ${item.damage})`);
-          // Dispatch a custom event to add the item to inventory, including its parameters
-          document.dispatchEvent(new CustomEvent('inventory.add', {
-            detail: {
+          // ✅ تم نقل هذا الجزء إلى هنا لكي يتم بثه فقط عند الشراء الناجح
+          this.Broadcast({
+              topic: 'inventory.add',
               value: item.name,
-              params: {
-                type: item.type,
-                damage: item.damage,
-                renderParams: item.renderParams
+              params: { // <--- هذا مهم جداً
+                  type: item.type,
+                  damage: item.damage,
+                  renderParams: item.renderParams
               }
-            }
-          }));
+          });
+          // Dispatch a custom event to add the item to inventory, including its parameters
+          // هذا الجزء يمكن إزالته الآن لأنه تم استبداله بـ this.Broadcast أعلاه
+          // document.dispatchEvent(new CustomEvent('inventory.add', {
+          //   detail: {
+          //     value: item.name,
+          //     params: {
+          //       type: item.type,
+          //       damage: item.damage,
+          //       renderParams: item.renderParams
+          //     }
+          //   }
+          // }));
         } else if (item.type === "upgrade") {
           const home = this.FindEntity('home').GetComponent('HomeComponent');
           if (home) {
