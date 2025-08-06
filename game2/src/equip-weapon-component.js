@@ -1,3 +1,4 @@
+// MultipleFiles/equip-weapon-component.js
 import {entity} from './entity.js';
 
 import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
@@ -45,6 +46,8 @@ export const equip_weapon_component = (() => {
       const item = inventory.GetItemByName(msg.value).GetComponent('InventoryItem');
       this._name = msg.value;
 
+      // ✅ السلوك: يظهر في يد اللاعب عند السحب إلى خانة الـ equip.
+      // يتم تحميل نموذج السلاح هنا بناءً على خصائص العنصر.
       this._LoadModels(item, () => {
         this._AttachTarget();
       });
@@ -60,24 +63,38 @@ export const equip_weapon_component = (() => {
 
     _LoadModels(item, cb) {
       const loader = new FBXLoader();
-      loader.setPath('./resources/weapons/FBX/');
-      loader.load(item.RenderParams.modelName + '.fbx', (fbx) => { // <--- تم التغيير هنا
+      // START_CHANGE: تحديد مسار ملفات FBX للفأس
+      // تأكد أن هذا المسار صحيح بالنسبة لموقع ملفات FBX الخاصة بك.
+      // إذا كان ملف axe.fbx في resources/FBX/، فالمسار هو './resources/FBX/'
+      loader.setPath('./resources/weapons\fBX');
+      // END_CHANGE
+
+      // START_CHANGE: استخدام modelName لتحميل النموذج
+      loader.load(item.RenderParams.modelName + '.fbx', (fbx) => {
+      // END_CHANGE
         this._target = fbx;
         this._target.scale.setScalar(item.RenderParams.scale);
-        // تحسين سلاسة الضربة (زمن أقل + موضع جاهز للضرب)
-        this._target.rotation.set(-Math.PI / 3, Math.PI - 1, 0);
-        this._target.traverse((c) => {
+        this._target.rotateY(Math.PI);
+        this._target.rotateX(-Math.PI / 3);
+        this._target.rotateY(-1);
+
+        this._target.traverse(c => {
           c.castShadow = true;
           c.receiveShadow = true;
         });
+
         cb();
+
         this.Broadcast({
-          topic: 'load.weapon',
-          model: this._target,
-          bones: this._bones,
+            topic: 'load.weapon',
+            model: this._target,
+            bones: this._bones,
         });
       });
     }
-  }
-  return { EquipWeapon };
+  };
+
+  return {
+      EquipWeapon: EquipWeapon,
+  };
 })();
