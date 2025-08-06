@@ -22,25 +22,23 @@ export const inventory_controller = (() => {
         };
       }
 
-      // START_CHANGE
-      this._gold = 0; // كمية الذهب  -----------
-      // END_CHANGE
+      this._gold = 0; // إضافة خاصية الذهب
     }
 
     InitComponent() {
       this._RegisterHandler('inventory.add', (m) => this._OnInventoryAdded(m));
-      // START_CHANGE
-      this._RegisterHandler('gold.add', (m) => this.AddGold(m.value));
+      this._RegisterHandler('gold.add', (m) => this.AddGold(m.value)); // للاستماع لحدث إضافة الذهب
 
-      // Listen for custom event dispatched by merchant for adding items
+      // ✅ استمع لأوامر الشراء من خارج النظام (مثل التاجر)
+      // هذا الجزء يضمن أن رسالة 'inventory.add' التي تأتي من التاجر
+      // تحتوي على 'params' لإنشاء InventoryItem بشكل صحيح.
       document.addEventListener("inventory.add", (e) => {
         this.Broadcast({
           topic: 'inventory.add',
-          value: e.detail.value, // Item name (e.g., "Axe")
-          params: e.detail.params, // Item data (damage, renderParams, etc.)
+          value: e.detail.value, // اسم السلاح (مثل "Axe")
+          params: e.detail.params, // بيانات السلاح (damage, renderParams, etc.)
         });
       });
-      // END_CHANGE
 
       const _SetupElement = (n) => {
         const element = document.getElementById(n);
@@ -54,15 +52,15 @@ export const inventory_controller = (() => {
           ev.preventDefault();
           const data = ev.dataTransfer.getData('text/plain');
           const other = document.getElementById(data);
+    
           this._OnItemDropped(other, element);
         };
-      };
+      }
 
       for (let k in this._inventory) {
         _SetupElement(k);
       }
     }
-
 
     _OnItemDropped(oldElement, newElement) {
       const oldItem = this._inventory[oldElement.id];
@@ -74,16 +72,16 @@ export const inventory_controller = (() => {
       this._SetItemAtSlot(oldElement.id, newValue);
       this._SetItemAtSlot(newElement.id, oldValue);
 
-      // START_CHANGE
-      // If the new slot is an equip slot, broadcast the equip event for the item that was moved into it
+      // ✅ تعديل هنا: إذا كان العنصر الجديد الذي تم إسقاطه في خانة التجهيز هو سلاح، قم بتجهيزه
+      // هذا الجزء يرسل رسالة 'inventory.equip' إلى مكون EquipWeapon
+      // ليقوم بتحميل النموذج وتجهيزه.
       if (newItem.type === 'equip') {
         this.Broadcast({
           topic: 'inventory.equip',
-          value: oldValue, // The item that was moved into the equip slot
-          added: false,
+          value: oldValue, // السلاح الذي تم تجهيزه
+          added: false, // هذا العلم قد لا يكون ضرورياً هنا
         });
       }
-      // END_CHANGE
     }
 
     _SetItemAtSlot(slot, itemName) {
@@ -91,10 +89,7 @@ export const inventory_controller = (() => {
       const obj = this.FindEntity(itemName); // البحث عن الكيان بالاسم
       if (obj) {
         const item = obj.GetComponent('InventoryItem');
-        // START_CHANGE
-        // Comment for weapon icon resources
-        // Place your weapon icons (e.g., war-axe-64.png, pointy-sword-64.png) in ./resources/icons/weapons/
-        // END_CHANGE
+        // تأكد من أن المسار صحيح لأيقونات الأسلحة
         const path = './resources/icons/weapons/' + item.RenderParams.icon;
         div.style.backgroundImage = "url('" + path + "')";
       } else {
@@ -104,16 +99,17 @@ export const inventory_controller = (() => {
     }
 
     _OnInventoryAdded(msg) {
-      // START_CHANGE
-      // If the entity for the item doesn't exist, create it and add it to the EntityManager
+      // ✅ تعديل هنا: إذا لم يكن الكيان موجودًا بالفعل، قم بإنشائه وإضافته إلى EntityManager
+      // هذا الجزء يضمن أن كل عنصر يتم شراؤه أو الحصول عليه
+      // يتم تحويله إلى كيان (Entity) في EntityManager،
+      // مما يسمح لمكونات أخرى (مثل EquipWeapon) بالوصول إليه.
       let itemEntity = this.FindEntity(msg.value);
       if (!itemEntity) {
         itemEntity = new entity.Entity();
-        itemEntity.SetName(msg.value); // Set entity name to match msg.value
-        itemEntity.AddComponent(new InventoryItem(msg.params)); // Use msg.params to create InventoryItem
-        this._parent._parent.Add(itemEntity, msg.value); // Add entity to EntityManager
+        itemEntity.SetName(msg.value); // تعيين اسم الكيان ليتوافق مع msg.value
+        itemEntity.AddComponent(new InventoryItem(msg.params)); // استخدام msg.params لإنشاء InventoryItem
+        this._parent._parent.Add(itemEntity, msg.value); // إضافة الكيان إلى EntityManager
       }
-      // END_CHANGE
 
       for (let k in this._inventory) {
         if (!this._inventory[k].value && this._inventory[k].type === 'inventory') {
@@ -121,24 +117,17 @@ export const inventory_controller = (() => {
           msg.added = true;
 
           this._SetItemAtSlot(k, msg.value);
-
+  
           break;
         }
       }
     }
 
-    // START_CHANGE
-    // Add gold support
+    // --- إضافة دعم الذهب ---
     AddGold(amount) {
       this._gold += amount;
-
-      // Broadcast event for gold collection (updates quests)
-      this.Broadcast({
-        topic: 'gold.collected',
-        amount: amount,
-      });
-
-      // Update HUD or anything else listening for this event
+      console.log(`الذهب الحالي: ${this._gold}`); // يمكنك إزالة هذا لاحقًا
+      // يمكنك بث حدث لتحديث واجهة المستخدم للذهب هنا
       document.dispatchEvent(new CustomEvent('update-gold', {
         detail: this._gold,
       }));
@@ -147,7 +136,6 @@ export const inventory_controller = (() => {
     GetGold() {
       return this._gold;
     }
-    // END_CHANGE
 
     GetItemByName(name) {
       for (let k in this._inventory) {
@@ -158,6 +146,7 @@ export const inventory_controller = (() => {
       return null;
     }
   };
+
 
   class InventoryItem extends entity.Component {
     constructor(params) {
@@ -176,8 +165,9 @@ export const inventory_controller = (() => {
     }
   };
 
+  
   return {
-    InventoryController: InventoryController,
-    InventoryItem: InventoryItem,
+      InventoryController: InventoryController,
+      InventoryItem: InventoryItem,
   };
 })();
