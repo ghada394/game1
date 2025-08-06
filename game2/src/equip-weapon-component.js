@@ -60,36 +60,24 @@ export const equip_weapon_component = (() => {
 
     _LoadModels(item, cb) {
       const loader = new FBXLoader();
-      // START_CHANGE
-      // تم تحديث مسار تحميل نماذج الأسلحة.
-      // يرجى التأكد من أن ملفاتك (مثل Round_2.fbx و Heater_2.fbx) موجودة في المسار resources/weapons/FBX/
       loader.setPath('./resources/weapons/FBX/');
-      // item.RenderParams.name يجب أن يتطابق مع اسم ملف FBX بدون الامتداد (مثلاً 'Round_2' لـ Round_2.fbx)
-      loader.load(item.RenderParams.name + '.fbx', (fbx) => {
-      // END_CHANGE
+      loader.load(item.RenderParams.modelName + '.fbx', (fbx) => { // <--- تم التغيير هنا
         this._target = fbx;
         this._target.scale.setScalar(item.RenderParams.scale);
-        this._target.rotateY(Math.PI);
-        this._target.rotateX(-Math.PI / 3);
-        this._target.rotateY(-1);
-
-        this._target.traverse(c => {
+        // تحسين سلاسة الضربة (زمن أقل + موضع جاهز للضرب)
+        this._target.rotation.set(-Math.PI / 3, Math.PI - 1, 0);
+        this._target.traverse((c) => {
           c.castShadow = true;
           c.receiveShadow = true;
         });
-
         cb();
-
         this.Broadcast({
-            topic: 'load.weapon',
-            model: this._target,
-            bones: this._bones,
+          topic: 'load.weapon',
+          model: this._target,
+          bones: this._bones,
         });
       });
     }
-  };
-
-  return {
-      EquipWeapon: EquipWeapon,
-  };
+  }
+  return { EquipWeapon };
 })();
