@@ -64,9 +64,12 @@ export const home_and_merchant_components = (() => {
       this._merchantPosition = new THREE.Vector3(30, 0, 5);
       this._interactionRange = 10;
       this._inventory = [
-        // تأكد من استبدال 'YourAxeModel' و 'YourSwordModel' بالأسماء الفعلية لملفاتك (بدون .fbx)
-        { name: "Axe", price: 20, type: "weapon", damage: 3, renderParams: { name: 'YourAxeModel', scale: 0.25, icon: 'Axe.png' } },
-        { name: "Sword", price: 20, type: "weapon", damage: 3, renderParams: { name: 'YourSwordModel', scale: 0.25, icon: 'Sword.png' } },
+        // START_CHANGE: تعريف الفأس بـ modelName و iconName منفصلين
+        // modelName: اسم ملف FBX للفأس (بدون .fbx)
+        // iconName: اسم ملف أيقونة الفأس (مع الامتداد .png)
+        { name: "Axe", price: 20, type: "weapon", damage: 3, renderParams: { modelName: 'axe', scale: 0.25, iconName: 'axe_icon.png' } },
+        { name: "Sword", price: 20, type: "weapon", damage: 3, renderParams: { modelName: 'sword', scale: 0.25, iconName: 'sword_icon.png' } }, // مثال للسيف
+        // END_CHANGE
         { name: "Home Upgrade", price: 50, type: "upgrade" },
         { name: "Health Potion", price: 15, type: "potion" }
       ];
@@ -193,28 +196,17 @@ export const home_and_merchant_components = (() => {
         playerInventory.AddGold(-item.price); // Decrease gold
         if (item.type === "weapon") {
           console.log(`🗡️ حصلت على: ${item.name} (ضرر: ${item.damage})`);
-          // ✅ تم نقل هذا الجزء إلى هنا لكي يتم بثه فقط عند الشراء الناجح
+          // ✅ السلوك: عند الشراء، يدخل العنصر مباشرة إلى المخزون.
+          // يتم بث رسالة 'inventory.add' التي سيتلقاها InventoryController.
           this.Broadcast({
               topic: 'inventory.add',
-              value: item.name,
-              params: { // <--- هذا مهم جداً
+              value: item.name, // اسم العنصر (مثل "Axe")
+              params: { // نمرر جميع خصائص العنصر لإنشاء InventoryItem
                   type: item.type,
                   damage: item.damage,
-                  renderParams: item.renderParams
+                  renderParams: item.renderParams // يحتوي الآن على modelName و iconName
               }
           });
-          // Dispatch a custom event to add the item to inventory, including its parameters
-          // هذا الجزء يمكن إزالته الآن لأنه تم استبداله بـ this.Broadcast أعلاه
-          // document.dispatchEvent(new CustomEvent('inventory.add', {
-          //   detail: {
-          //     value: item.name,
-          //     params: {
-          //       type: item.type,
-          //       damage: item.damage,
-          //       renderParams: item.renderParams
-          //     }
-          //   }
-          // }));
         } else if (item.type === "upgrade") {
           const home = this.FindEntity('home').GetComponent('HomeComponent');
           if (home) {
