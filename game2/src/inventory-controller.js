@@ -22,16 +22,16 @@ export const inventory_controller = (() => {
         };
       }
 
-      this._gold = 0; // إضافة خاصية الذهب
+      this._gold = 0; // كمية الذهب
     }
 
     InitComponent() {
       this._RegisterHandler('inventory.add', (m) => this._OnInventoryAdded(m));
-      this._RegisterHandler('gold.add', (m) => this.AddGold(m.value)); // للاستماع لحدث إضافة الذهب
+      this._RegisterHandler('gold.add', (m) => this.AddGold(m.value));
 
-      // ✅ استمع لأوامر الشراء من خارج النظام (مثل التاجر)
-      // هذا الجزء يضمن أن رسالة 'inventory.add' التي تأتي من التاجر
-      // تحتوي على 'params' لإنشاء InventoryItem بشكل صحيح.
+      // ✅ السلوك: عند الشراء، يدخل العنصر مباشرة إلى المخزون.
+      // هذا المستمع يضمن أن أي رسالة 'inventory.add' (سواء من التاجر أو غيره)
+      // يتم معالجتها لإضافة العنصر إلى المخزون.
       document.addEventListener("inventory.add", (e) => {
         this.Broadcast({
           topic: 'inventory.add',
@@ -62,6 +62,7 @@ export const inventory_controller = (() => {
       }
     }
 
+
     _OnItemDropped(oldElement, newElement) {
       const oldItem = this._inventory[oldElement.id];
       const newItem = this._inventory[newElement.id];
@@ -72,14 +73,14 @@ export const inventory_controller = (() => {
       this._SetItemAtSlot(oldElement.id, newValue);
       this._SetItemAtSlot(newElement.id, oldValue);
 
-      // ✅ تعديل هنا: إذا كان العنصر الجديد الذي تم إسقاطه في خانة التجهيز هو سلاح، قم بتجهيزه
+      // ✅ السلوك: يظهر في يد اللاعب عند السحب إلى خانة الـ equip.
       // هذا الجزء يرسل رسالة 'inventory.equip' إلى مكون EquipWeapon
       // ليقوم بتحميل النموذج وتجهيزه.
       if (newItem.type === 'equip') {
         this.Broadcast({
           topic: 'inventory.equip',
           value: oldValue, // السلاح الذي تم تجهيزه
-          added: false, // هذا العلم قد لا يكون ضرورياً هنا
+          added: false,
         });
       }
     }
@@ -89,8 +90,9 @@ export const inventory_controller = (() => {
       const obj = this.FindEntity(itemName); // البحث عن الكيان بالاسم
       if (obj) {
         const item = obj.GetComponent('InventoryItem');
-        // تأكد من أن المسار صحيح لأيقونات الأسلحة
-        const path = './resources/icons/weapons/' + item.RenderParams.icon;
+        // START_CHANGE: استخدام iconName لعرض الأيقونة
+        const path = './resources/icons/weapons/' + item.RenderParams.iconName;
+        // END_CHANGE
         div.style.backgroundImage = "url('" + path + "')";
       } else {
         div.style.backgroundImage = '';
@@ -99,7 +101,7 @@ export const inventory_controller = (() => {
     }
 
     _OnInventoryAdded(msg) {
-      // ✅ تعديل هنا: إذا لم يكن الكيان موجودًا بالفعل، قم بإنشائه وإضافته إلى EntityManager
+      // ✅ السلوك: عند الشراء، يدخل العنصر مباشرة إلى المخزون.
       // هذا الجزء يضمن أن كل عنصر يتم شراؤه أو الحصول عليه
       // يتم تحويله إلى كيان (Entity) في EntityManager،
       // مما يسمح لمكونات أخرى (مثل EquipWeapon) بالوصول إليه.
@@ -124,10 +126,17 @@ export const inventory_controller = (() => {
     }
 
     // --- إضافة دعم الذهب ---
+
     AddGold(amount) {
       this._gold += amount;
-      console.log(`الذهب الحالي: ${this._gold}`); // يمكنك إزالة هذا لاحقًا
-      // يمكنك بث حدث لتحديث واجهة المستخدم للذهب هنا
+
+      // بث الحدث الخاص بجمع الذهب (يحدث المهام)
+      this.Broadcast({
+        topic: 'gold.collected',
+        amount: amount,
+      });
+
+      // تحديث HUD أو أي شيء آخر يستمع لهذا الحدث
       document.dispatchEvent(new CustomEvent('update-gold', {
         detail: this._gold,
       }));
@@ -146,7 +155,6 @@ export const inventory_controller = (() => {
       return null;
     }
   };
-
 
   class InventoryItem extends entity.Component {
     constructor(params) {
@@ -167,7 +175,7 @@ export const inventory_controller = (() => {
 
   
   return {
-      InventoryController: InventoryController,
-      InventoryItem: InventoryItem,
+    InventoryController: InventoryController,
+    InventoryItem: InventoryItem,
   };
 })();
