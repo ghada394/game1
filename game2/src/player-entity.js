@@ -1,3 +1,4 @@
+// (الكود الكامل كما في ملفك، مع الإضافات) 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118.1/build/three.module.js';
 
 import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
@@ -55,10 +56,115 @@ export const player_entity = (() => {
           new BasicCharacterControllerProxy(this._animations));
   
       this._LoadModels();
+
+      // << ADDED: player data (inventory + gold + helper methods)
+      // هذا الكائن يمثل "واجهة" اللاعب التي يمكن للتاجر أو واجهات UI استخدامها
+      this._playerData = {
+        gold: 100, // القيمة الافتراضية — عدّلها عند تهيئة اللاعب إذا أردت
+        inventory: [],
+
+        // callback hooks (يمكنك إسناد دوال هنا لتحديث HUD عند التغيير)
+        onInventoryChanged: null,
+        onGoldChanged: null,
+
+        addItem: (item) => {
+          // item: { id, name, qty, data }
+          const existing = this._playerData.inventory.find(i => i.id === item.id);
+          if (existing) {
+            existing.qty = (existing.qty || 1) + (item.qty || 1);
+          } else {
+            this._playerData.inventory.push(Object.assign({}, item, { qty: item.qty || 1 }));
+          }
+          // نداء اختياري لتحديث الواجهة
+          if (typeof this._playerData.onInventoryChanged === 'function') {
+            this._playerData.onInventoryChanged(this._playerData.inventory);
+          }
+          console.log(`🧰 تمت الإضافة: ${item.name}. المخزون الآن: ${this._playerData.inventory.map(i=>`${i.name} x${i.qty}`).join(', ')}`);
+        },
+
+        hasGold: (amount) => {
+          return this._playerData.gold >= amount;
+        },
+
+        spendGold: (amount) => {
+          if (!this._playerData.gold || this._playerData.gold < amount) return false;
+          this._playerData.gold -= amount;
+          if (typeof this._playerData.onGoldChanged === 'function') {
+            this._playerData.onGoldChanged(this._playerData.gold);
+          }
+          console.log(`💰 خصم ${amount} ذهب. المتبقي: ${this._playerData.gold}`);
+          return true;
+        }
+      };
+      // >> ADDED
     }
+
+    // << ADDED: دالة لإرجاع "واجهة اللاعب" للاستخدام الخارجي (التاجر، UI، الخ)
+    getPlayer() {
+      return this._playerData;
+    }
+    // >> ADDED
 
     InitComponent() {
       this._RegisterHandler('health.death', (m) => { this._OnDeath(m); });
+
+      // << ADDED: الاستماع لبث 'input.interact_merchant'
+      // عند الضغط على T (الذي يبعث هذا الحدث في player-input)، نحاول فتح المتجر
+      this._RegisterHandler('input.interact_merchant', (m) => {
+        try {
+          // أولاً: نتحقق إذا في كائن shop (الذي قد تكون أنشأته من merchant.js المقترح)
+          if (window.shop && typeof window.shop.openFor === 'function') {
+            window.shop.openFor(this.getPlayer());
+            console.log('🧾 فتح متجر عبر window.shop.openFor(...)');
+            return;
+          }
+
+          // إذا كانت هناك دالة openShop() عالمية قديمة (نسختك البسيطة)
+          if (typeof window.openShop === 'function') {
+            // في النسخة القديمة openShop() لا تأخذ اللاعب كوسيط. سنقوم بنداءها.
+            window.openShop();
+            console.log('🧾 فتح المتجر عبر openShop() (دالة قديمة)');
+            return;
+          }
+
+          // إذا يوجد كائن merchant مع موقع، نتحقق المسافة ثم نفتح المتجر عبر openShop (أو نطبع الارشادات)
+          if (window.merchant) {
+            // حساب المسافة بين لاعب (this._position) وإحداثيات المتجر (merchant.x, merchant.z)
+            const mx = window.merchant.x !== undefined ? window.merchant.x : null;
+            const mz = window.merchant.z !== undefined ? window.merchant.z : null;
+            if (mx !== null && mz !== null) {
+              const dx = this._position.x - mx;
+              const dz = this._position.z - mz;
+              const dist = Math.sqrt(dx*dx + dz*dz);
+              const ALLOWED_DIST = 6.0; // مسافة التفاعل المسموح بها (قابلة للتعديل)
+              if (dist <= ALLOWED_DIST) {
+                // إذا كانت دالة openShop موجودة نستخدمها
+                if (typeof window.openShop === 'function') {
+                  window.openShop();
+                  console.log('🧾 فتح المتجر عبر openShop() (قريب من التاجر)');
+                  return;
+                }
+                // بخلاف ذلك، نعرض قائمة التاجر في الكونسول (نسخة قديمة)
+                console.log('📦 فتح المتجر - (مرر player إلى واجهة التاجر إن أردت)');
+                if (typeof window.buyItem === 'function') {
+                  // نخبر المستخدم بكيفية الشراء عبر الدالة القديمة
+                  console.log('لاستكمال الشراء، استخدم buyItem(index) أو buyItemById(id).');
+                }
+                return;
+              } else {
+                console.log(`📍 بعيد عن التاجر (المسافة ${dist.toFixed(2)}). اقترب حتى تفتح المتجر (≤ ${ALLOWED_DIST}).`);
+                return;
+              }
+            }
+          }
+
+          // إن لم نجد آلية فتح المتجر، نعطي إرشادات للمطور
+          console.log("⚠️ لا يوجد نظام متجر معرف. للتكامل: إما عرف global `shop` (مع openFor(player)) أو global `openShop()` أو object `merchant` ودالة `openShop()`.");
+        } catch (err) {
+          console.error("خطأ عند محاولة فتح المتجر:", err);
+        }
+      });
+      // >> ADDED
     }
 
     _OnDeath(msg) {
@@ -251,4 +357,3 @@ export const player_entity = (() => {
   };
 
 })();
-
