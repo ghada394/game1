@@ -60,8 +60,13 @@ export const equip_weapon_component = (() => {
 
     _LoadModels(item, cb) {
       const loader = new FBXLoader();
+      // START_CHANGE
+      // تم تحديث مسار تحميل نماذج الأسلحة.
+      // يرجى التأكد من أن ملفاتك (مثل Round_2.fbx و Heater_2.fbx) موجودة في المسار resources/weapons/FBX/
       loader.setPath('./resources/weapons/FBX/');
+      // item.RenderParams.name يجب أن يتطابق مع اسم ملف FBX بدون الامتداد (مثلاً 'Round_2' لـ Round_2.fbx)
       loader.load(item.RenderParams.name + '.fbx', (fbx) => {
+      // END_CHANGE
         this._target = fbx;
         this._target.scale.setScalar(item.RenderParams.scale);
         this._target.rotateY(Math.PI);
