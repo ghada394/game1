@@ -22,22 +22,25 @@ export const inventory_controller = (() => {
         };
       }
 
+      // START_CHANGE
       this._gold = 0; // كمية الذهب  -----------
+      // END_CHANGE
     }
 
     InitComponent() {
       this._RegisterHandler('inventory.add', (m) => this._OnInventoryAdded(m));
+      // START_CHANGE
       this._RegisterHandler('gold.add', (m) => this.AddGold(m.value));
 
-      // ✅ استمع لأوامر الشراء من خارج النظام (مثل التاجر)
+      // Listen for custom event dispatched by merchant for adding items
       document.addEventListener("inventory.add", (e) => {
-        // هنا نستخدم e.detail.value كاسم الكيان، و e.detail.params كبيانات InventoryItem
         this.Broadcast({
           topic: 'inventory.add',
-          value: e.detail.value, // اسم السلاح (مثل "Axe")
-          params: e.detail.params, // بيانات السلاح (damage, renderParams, etc.)
+          value: e.detail.value, // Item name (e.g., "Axe")
+          params: e.detail.params, // Item data (damage, renderParams, etc.)
         });
       });
+      // END_CHANGE
 
       const _SetupElement = (n) => {
         const element = document.getElementById(n);
@@ -71,14 +74,16 @@ export const inventory_controller = (() => {
       this._SetItemAtSlot(oldElement.id, newValue);
       this._SetItemAtSlot(newElement.id, oldValue);
 
-      // ✅ تعديل هنا: إذا كان العنصر الجديد الذي تم إسقاطه في خانة التجهيز هو سلاح، قم بتجهيزه
+      // START_CHANGE
+      // If the new slot is an equip slot, broadcast the equip event for the item that was moved into it
       if (newItem.type === 'equip') {
         this.Broadcast({
           topic: 'inventory.equip',
-          value: oldValue, // السلاح الذي تم تجهيزه
-          added: false, // هذا العلم قد لا يكون ضرورياً هنا
+          value: oldValue, // The item that was moved into the equip slot
+          added: false,
         });
       }
+      // END_CHANGE
     }
 
     _SetItemAtSlot(slot, itemName) {
@@ -86,7 +91,10 @@ export const inventory_controller = (() => {
       const obj = this.FindEntity(itemName); // البحث عن الكيان بالاسم
       if (obj) {
         const item = obj.GetComponent('InventoryItem');
-        // تأكد من أن المسار صحيح لأيقونات الأسلحة
+        // START_CHANGE
+        // Comment for weapon icon resources
+        // Place your weapon icons (e.g., war-axe-64.png, pointy-sword-64.png) in ./resources/icons/weapons/
+        // END_CHANGE
         const path = './resources/icons/weapons/' + item.RenderParams.icon;
         div.style.backgroundImage = "url('" + path + "')";
       } else {
@@ -96,14 +104,16 @@ export const inventory_controller = (() => {
     }
 
     _OnInventoryAdded(msg) {
-      // ✅ تعديل هنا: إذا لم يكن الكيان موجودًا بالفعل، قم بإنشائه وإضافته إلى EntityManager
+      // START_CHANGE
+      // If the entity for the item doesn't exist, create it and add it to the EntityManager
       let itemEntity = this.FindEntity(msg.value);
       if (!itemEntity) {
         itemEntity = new entity.Entity();
-        itemEntity.SetName(msg.value); // تعيين اسم الكيان ليتوافق مع msg.value
-        itemEntity.AddComponent(new InventoryItem(msg.params)); // استخدام msg.params لإنشاء InventoryItem
-        this._parent._parent.Add(itemEntity, msg.value); // إضافة الكيان إلى EntityManager
+        itemEntity.SetName(msg.value); // Set entity name to match msg.value
+        itemEntity.AddComponent(new InventoryItem(msg.params)); // Use msg.params to create InventoryItem
+        this._parent._parent.Add(itemEntity, msg.value); // Add entity to EntityManager
       }
+      // END_CHANGE
 
       for (let k in this._inventory) {
         if (!this._inventory[k].value && this._inventory[k].type === 'inventory') {
@@ -117,18 +127,18 @@ export const inventory_controller = (() => {
       }
     }
 
-    // --- إضافة دعم الذهب ---
-
+    // START_CHANGE
+    // Add gold support
     AddGold(amount) {
       this._gold += amount;
 
-      // بث الحدث الخاص بجمع الذهب (يحدث المهام)
+      // Broadcast event for gold collection (updates quests)
       this.Broadcast({
         topic: 'gold.collected',
         amount: amount,
       });
 
-      // تحديث HUD أو أي شيء آخر يستمع لهذا الحدث
+      // Update HUD or anything else listening for this event
       document.dispatchEvent(new CustomEvent('update-gold', {
         detail: this._gold,
       }));
@@ -137,6 +147,7 @@ export const inventory_controller = (() => {
     GetGold() {
       return this._gold;
     }
+    // END_CHANGE
 
     GetItemByName(name) {
       for (let k in this._inventory) {
