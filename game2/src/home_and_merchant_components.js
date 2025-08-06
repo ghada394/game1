@@ -65,9 +65,12 @@ export const home_and_merchant_components = (() => {
       this._interactionRange = 10;
       this._inventory = [
         // START_CHANGE
-        // Added Axe and Sword to merchant inventory
-        { name: "Axe", price: 20, type: "weapon", damage: 3, renderParams: { name: 'Axe', scale: 0.25, icon: 'war-axe-64.png' } }, // Ensure 'war-axe-64.png' is in resources/icons/weapons/
-        { name: "Sword", price: 20, type: "weapon", damage: 3, renderParams: { name: 'Sword', scale: 0.25, icon: 'pointy-sword-64.png' } }, // Ensure 'pointy-sword-64.png' is in resources/icons/weapons/
+        // تم تحديث أسماء نماذج الأسلحة لتتوافق مع ملفاتك.
+        // يرجى استبدال 'YourAxeModel.fbx' و 'YourSwordModel.fbx' بالأسماء الفعلية لملفاتك.
+        // على سبيل المثال: { name: "Axe", price: 20, type: "weapon", damage: 3, renderParams: { name: 'Round_2', scale: 0.25, icon: 'war-axe-64.png' } },
+        // وتأكد أن أيقونات الأسلحة (مثل war-axe-64.png) موجودة في المسار resources/icons/weapons/
+        { name: "Axe", price: 20, type: "weapon", damage: 3, renderParams: { name: 'YourAxeModel', scale: 0.25, icon: 'Axe.png' } }, // ضع اسم ملف الفأس هنا (بدون .fbx)
+        { name: "Sword", price: 20, type: "weapon", damage: 3, renderParams: { name: 'YourSwordModel', scale: 0.25, icon: 'Sword.png' } }, // ضع اسم ملف السيف هنا (بدون .fbx)
         // END_CHANGE
         { name: "Home Upgrade", price: 50, type: "upgrade" },
         { name: "Health Potion", price: 15, type: "potion" }
@@ -86,10 +89,8 @@ export const home_and_merchant_components = (() => {
 
     _LoadMerchantModel() {
       const loader = new FBXLoader();
-      // START_CHANGE
       // Comment for merchant model resource
-      // Place your peasant_girl.fbx model in ./resources/girl/
-      // END_CHANGE
+      // ضع نموذج التاجر الخاص بك (مثل peasant_girl.fbx) في المسار ./resources/girl/
       loader.load('./resources/girl/peasant_girl.fbx', (fbx) => {
         this._merchantMesh = fbx;
         this._merchantMesh.scale.set(0.03, 0.03, 0.03);
@@ -195,8 +196,6 @@ export const home_and_merchant_components = (() => {
       const player = this.FindEntity('player');
       const playerInventory = player.GetComponent('InventoryController');
 
-      // START_CHANGE
-      // Check gold and decrease it
       if (playerInventory && playerInventory.GetGold() >= item.price) {
         playerInventory.AddGold(-item.price); // Decrease gold
         if (item.type === "weapon") {
@@ -224,7 +223,6 @@ export const home_and_merchant_components = (() => {
       } else {
         console.log(`❌ ليس لديك ما يكفي من الذهب. السعر: ${item.price} ذهب`);
       }
-      // END_CHANGE
     }
 
     Update(timeElapsed) {
